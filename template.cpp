@@ -47,15 +47,17 @@ void _print_debug(int line_num, T const&... data) {
     }
 }
 
+// println
 template<class... T>
-void println(T const&... data) {
+void PLN(T const&... data) {
     using expander = int[];
     (void) expander{0, (void(std::cout << data), 0)...};
     std::cout << std::endl;
 }
 
+// printlni
 template<class... T>
-void printlni(T const&... data) {
+void PLNI(T const&... data) {
     std::cout << "> ";
     using expander = int[];
     (void) expander{0, (void(std::cout << data), 0)...};
@@ -276,7 +278,7 @@ std::pair<type*, std::vector<int>> input_load() {
 }
 
 template<typename type>
-void transpose_recursive(type* m, type val, int c, int I, int J, std::vector<bool>* transposed, bool first) {
+void _MTR(type* m, type val, int c, int I, int J, std::vector<bool>* transposed, bool first) {
     if (!(*transposed)[c]) {
         int i, j, nc, nval;
         i = c/J;
@@ -285,17 +287,17 @@ void transpose_recursive(type* m, type val, int c, int I, int J, std::vector<boo
         nval = *(m+c);
 
         if (first) {
-            transpose_recursive<type>(m, nval, nc, I, J, transposed, false);
+            _MTR<type>(m, nval, nc, I, J, transposed, false);
         } else {
             *(m+c) = val;
             (*transposed)[c] = true;
-            transpose_recursive<type>(m, nval, nc, I, J, transposed, false);
+            _MTR<type>(m, nval, nc, I, J, transposed, false);
         }
     }
 }
 
 template<typename type>
-void transpose_inplace(type* m, int I, int J) {
+void MT(type* m, int I, int J) {
     std::vector<bool> transposed(I*J, false);
     int c, nc;
     type temp;
@@ -304,14 +306,14 @@ void transpose_inplace(type* m, int I, int J) {
         for (int j = 0; j < J; j++) {
             c = J*i+j;
             if (!transposed[c]) {
-                transpose_recursive<type>(m, temp, c, I, J, &transposed, true);
+                _MTR<type>(m, temp, c, I, J, &transposed, true);
             }
         }
     }
 }
 
 template<typename type>
-void reverse_rows_inplace(type* m, int I, int J) {
+void MREV(type* m, int I, int J) {
     for (int i = 0; i < I; i++) {
         for (int j = 0; j < (J+1)/2; j++) {
             std::swap(m[J*i+j], m[J*i+(J-j-1)]);
@@ -320,105 +322,164 @@ void reverse_rows_inplace(type* m, int I, int J) {
 }
 
 template<typename type>
-void rot90_inplace(type* m, int I, int J) {
-    transpose_inplace(m, I, J);
-    reverse_rows_inplace(m, J, I);
+void MR90(type* m, int I, int J) {
+    MT(m, I, J);
+    MREV(m, J, I);
+}
+
+template<typename type1, typename type2>
+int BFINDT(type1 m, type2 val, int len) {
+    int i = len/2;
+    type2 temp;
+
+    while (true) {
+        temp = m[i];
+        if (temp == val) {
+            return i;
+        } else {
+            if (i == 0 || i == len) {
+                return -1;
+            }
+        }
+
+        if (temp > val) {
+            i /= 2;
+        } else {
+            i *= 2;
+            if (i >= len) {
+                i = len-1;
+            }
+        }
+    }
 }
 /** END MATRIX OPERATIONS **/
 
 
 /** SHORTHAND MACROS**/
-#define get_eps(class) (std::numeric_limits<class>::epsilon())
-#define get_min(class) (std::numeric_limits<class>::min())
-#define get_max(class) (std::numeric_limits<class>::max())
-#define get_nmax(class) (-std::numeric_limits<class>::max())
-#define print_debug(...) _print_debug(__LINE__, __VA_ARGS__)
-#define FOR(var,a,b) for (int var = a; var < b; var++)
-#define FORi(var,arr) for (auto var : arr)
-#define dump_array(m) FORi(x,m){std::cout<<x<<" "}; std::cout<<"\b "<<std::endl;
-#define dump_matrix(m,I,J) FOR(i,0,I){FOR(j,0,J){std::cout<<m[i*J+j]<<" ";};std::cout<<"\b"<<std::endl;};
-#define load_matrix(m, dims, type) type* m;std::vector<type> dims;std::tie(m, dims)=input_load<type>();
+#define GEPS(class) (std::numeric_limits<class>::epsilon()) // get
+#define GMIN(class) (std::numeric_limits<class>::min())     // arbitrary
+#define GMAX(class) (std::numeric_limits<class>::max())     // type
+#define GNMAX(class) (-std::numeric_limits<class>::max())   // constants
+#define PDB(...) _print_debug(__LINE__, __VA_ARGS__)  // print debug
+#define FOR(var,a,b) for (int var = a; var < b; var++) // for
+#define FORi(var,arr) for (auto var : arr) // for iterator
+#define DA(m) FORi(x,m){std::cout<<x<<" "}; std::cout<<"\b "<<std::endl; // dump array
+#define DM(m,I,J) FOR(i,0,I){FOR(j,0,J){std::cout<<m[i*J+j]<<" ";};std::cout<<"\b"<<std::endl;}; // dump matrix
+#define LM(m, dims, type) type* m;std::vector<type> dims;std::tie(m, dims)=input_load<type>(); // load matrix
+#define SV(v) std::sort(v.begin(), v.end()) // sort vector
+#define RSV(v) std::sort(v.rbegin(), v.rend()) // sort vector in reverse order
+#define MAX(x, y) ((x) >= (y) ? (x) : (y))
+#define MIN(x, y) ((x) <= (y) ? (x) : (y))
+#define SWAP(x, y) (std::swap(x, y))
+#define PB push_back
+#define MP std::make_pair
+#define vi std::vector<int>
+#define vc std::vector<char>
+#define pi std::pair<int, int>
+#define ll long long
+#define f float
+#define d double
+#define ld long double
+#define u uint64_t
+#define CPI ld(3.14159265358979323846264338)
+#define CE ld(2.71828182845904523536028747)
+#define FIND(vec, val) (std::find(vec.begin(), vec.end(), val)-vec.begin())
+#define BFIND(vec, val) (BFINDT<decltype(vec), decltype(val)>(vec, val, vec.size()))
 /** END SHORTHAND MACROS**/
 
 
 /** TESTS **/
 void test_macros() {
-    float epsf = get_eps(float);
-    double epsd = get_max(double);
-    long double epsld = get_min(long double);
-    int eps = get_nmax(int);
-
+    f epsf = GEPS(f);
+    d epsd = GMAX(d);
+    ld epsld = GMIN(ld);
+    int eps = GNMAX(int);
 }
 
 void debug_tests() {
-    println();
-    println("|| Debug Tests ||");
-    print_debug(1, 2, "test");
+    PLN();
+    PLN("|| Debug Tests ||");
+    PDB(1, 2, "test");
     enable_debug_colouring();
-    print_debug(1.f, 2.0, "test");
-    println("|| End Debug Tests ||");
-    println();
+    PDB(1.f, 2.0, "test");
+    PLN("|| End Debug Tests ||");
+    PLN();
 }
 
 void matrix_tests() {
-    println();
-    println("|| Matrix Tests ||");
-    printlni("Enter 2D Matrix:");
-    load_matrix(m, dims, int);
-    printlni("Matrix:");
-    dump_matrix(m, dims[0], dims[1]);
-    printlni("Matrix Transpose:");
-    transpose_inplace<int>(m, dims[0], dims[1]);
-    dump_matrix(m, dims[1], dims[0]);
-    printlni("Matrix Row Reversal:");
-    transpose_inplace<int>(m, dims[1], dims[0]);
-    reverse_rows_inplace(m, dims[0], dims[1]);
-    dump_matrix(m, dims[0], dims[1]);
-    printlni("Matrix Rot90:");
-    reverse_rows_inplace(m, dims[0], dims[1]);
-    rot90_inplace(m, dims[0], dims[1]);
-    dump_matrix(m, dims[1], dims[0]);
-    println("|| End Matrix Tests ||");
-    println();
+    PLN();
+    PLN("|| Matrix Tests ||");
+    PLN("Enter 2D Matrix:");
+    LM(m, dims, int);
+    PLNI("Matrix:");
+    DM(m, dims[0], dims[1]);
+    PLNI("Matrix Transpose:");
+    MT<int>(m, dims[0], dims[1]);
+    DM(m, dims[1], dims[0]);
+    PLNI("Matrix Row Reversal:");
+    MT<int>(m, dims[1], dims[0]);
+    MREV(m, dims[0], dims[1]);
+    DM(m, dims[0], dims[1]);
+    PLNI("Matrix Rot90:");
+    MREV(m, dims[0], dims[1]);
+    MR90(m, dims[0], dims[1]);
+    DM(m, dims[1], dims[0]);
+    PLN("|| End Matrix Tests ||");
+    PLN();
+}
+
+void vector_tests() {
+    PLN();
+    PLN("|| Vector Tests ||");
+    vi test_vec;
+    FOR(i, 0, 10) {
+        test_vec.PB(i);
+    }
+    SV(test_vec);
+    PLN(FIND(test_vec, 4));
+    PLN(BFIND(test_vec, 4));
+    PLN("|| End Vector Tests ||");
+    PLN();
 }
 
 void dict_tests() {
-    println();
-    println("|| Dict Tests ||");
+    PLN();
+    PLN("|| Dict Tests ||");
     dict<std::string, std::string> tdict;
-    printlni("Assigning Key/Value Pairs...");
+    PLNI("Assigning Key/Value Pairs...");
     tdict["test"] = "hi";
     tdict["test1"] = "hi1";
     tdict["test2"] = "hi2";
-    printlni("Print dict[\"test\"]:");
-    println(tdict["test"]);
-    printlni("Assign To Variable And Print:");
+    PLNI("Print dict[\"test\"]:");
+    PLN(tdict["test"]);
+    PLNI("Assign To Variable And Print:");
     std::string t = tdict["test"];
-    println(t);
-    printlni("Get Dict Keys Iterator...");
+    PLN(t);
+    PLNI("Get Dict Keys Iterator...");
     auto keys = tdict.keys();
-    printlni("Iterating Over Keys:");
+    PLNI("Iterating Over Keys:");
     for (auto key : keys) {
-        println(key);
+        PLN(key);
     }
-    printlni("Get Dict Values Iterator...");
+    PLNI("Get Dict Values Iterator...");
     auto vals = tdict.values();
-    printlni("Iterating Over Values:");
+    PLNI("Iterating Over Values:");
     for (auto val : vals) {
-        println(val);
+        PLN(val);
     }
-    printlni("Pop From Dict With Key:");
-    println(tdict.pop("test"));
-    printlni("Pop From End Of Dict:");
+    PLNI("Pop From Dict With Key:");
+    PLN(tdict.pop("test"));
+    PLNI("Pop From End Of Dict:");
     auto temp  = tdict.popitem();
-    println('(', std::get<0>(temp), ", ", std::get<1>(temp), ")");
-    println("|| End Dict Tests ||");
-    println();
+    PLN('(', std::get<0>(temp), ", ", std::get<1>(temp), ")");
+    PLN("|| End Dict Tests ||");
+    PLN();
 }
 
 int main() {
     debug_tests();
     matrix_tests();
     dict_tests();
+    vector_tests();
 }
 /** END TESTS **/
